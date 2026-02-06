@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FPS Pro感度コンバーター - 完全版</title>
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🎮 FPS Pro感度コンバーター</h1>
+        <p class="subtitle">20種類以上のゲーム対応 | 実測値ベースの正確な感度変換</p>
+
+        <!-- デバイス選択セクション -->
+        <div class="device-selector">
+            <h3>🕹️ 入力デバイスを選択</h3>
+            <div class="device-buttons">
+                <button class="device-btn active" onclick="selectDevice('mouse')" id="btn-mouse">
+                    <span class="icon">🖱️</span>
+                    <span class="label">マウス/キーボード</span>
+                </button>
+                <button class="device-btn" onclick="selectDevice('controller')" id="btn-controller">
+                    <span class="icon">🎮</span>
+                    <span class="label">コントローラー</span>
+                </button>
+            </div>
+            
+            <!-- コントローラー選択（コントローラーモード時のみ表示） -->
+            <div id="controller-type-selector" class="hidden controller-type-section">
+                <h4>🎮 コントローラーの種類を選択</h4>
+                <select id="controllerType" class="controller-select">
+                    <optgroup label="PlayStation">
+                        <option value="dualsense">DualSense</option>
+                        <option value="dualsense_edge">DualSense Edge</option>
+                    </optgroup>
+                    <optgroup label="Xbox">
+                        <option value="xbox_series">Xbox コントローラー (Series X/S)</option>
+                        <option value="xbox_elite">Xbox Elite コントローラー (第二世代)</option>
+                    </optgroup>
+                    <optgroup label="Nintendo">
+                        <option value="joycon">Joy-Con</option>
+                        <option value="pro_controller">Pro コントローラー</option>
+                        <option value="joycon2">Joy-Con 2</option>
+                        <option value="switch2_pro">Nintendo Switch 2 Pro コントローラー</option>
+                    </optgroup>
+                </select>
+            </div>
+        </div>
+
+        <div class="converter-grid">
+            <div class="card">
+                <h2>元のゲーム設定</h2>
+                
+                <div class="input-group">
+                    <label for="sourceGame">ゲーム</label>
+                    <select id="sourceGame" onchange="updateGameDefaults('source')">
+                        <optgroup label="タクティカルシューター">
+                            <option value="valorant">Valorant</option>
+                            <option value="cs2">Counter-Strike 2</option>
+                            <option value="r6s">Rainbow Six Siege</option>
+                            <option value="r6e">Rainbow Six Extraction</option>
+                            <option value="tarkov">Escape from Tarkov</option>
+                        </optgroup>
+                        <optgroup label="Call of Duty">
+                            <option value="codmw2019">Modern Warfare (2019)</option>
+                            <option value="codbocw">Black Ops Cold War</option>
+                            <option value="codmw2">Modern Warfare II</option>
+                            <option value="codmw3">Modern Warfare III</option>
+                            <option value="codbo6">Black Ops 6</option>
+                            <option value="codbo7">Black Ops 7</option>
+                        </optgroup>
+                        <optgroup label="Battlefield">
+                            <option value="bf1">Battlefield 1</option>
+                            <option value="bfv">Battlefield V</option>
+                            <option value="bf2042">Battlefield 2042</option>
+                            <option value="bf6">Battlefield 6</option>
+                        </optgroup>
+                        <optgroup label="バトルロイヤル/その他">
+                            <option value="apex">Apex Legends</option>
+                            <option value="pubg">PUBG: Battlegrounds</option>
+                            <option value="overwatch2">Overwatch 2</option>
+                            <option value="thefinals">The Finals</option>
+                            <option value="marvelrivals">Marvel Rivals</option>
+                            <option value="deltaforce">Delta Force</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <!-- マウス専用設定 -->
+                <div id="mouse-settings-source">
+                    <div class="input-group">
+                        <label for="sourceSens">通常感度 (Hipfire)</label>
+                        <input type="number" id="sourceSens" step="0.001" placeholder="例: 0.4" value="0.4">
+                    </div>
+
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="sourceDPI">DPI</label>
+                            <input type="number" id="sourceDPI" placeholder="800" value="800">
+                        </div>
+                        <div class="input-group">
+                            <label for="sourceFOV">FOV (度)</label>
+                            <input type="number" id="sourceFOV" placeholder="103" value="103">
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sourceADS">ADS感度倍率</label>
+                        <input type="number" id="sourceADS" step="0.01" placeholder="1.0" value="1.0">
+                        <small>例: 0.75-0.80 (CoD), 50 (R6S), 37.89% (OW2)</small>
+                    </div>
+                </div>
+
+                <!-- ゲームパッド専用設定 -->
+                <div id="gamepad-settings-source" class="hidden">
+                    <div class="section-title">基本感度</div>
+                    
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceHorizontalSens">水平感度（左右）</label>
+                            <span class="value-display" id="sourceHorizontalSensValue">50</span>
+                        </div>
+                        <input type="range" id="sourceHorizontalSens" min="1" max="100" value="50" 
+                               oninput="updateSliderValue('sourceHorizontalSens')">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceVerticalSens">垂直感度（上下）</label>
+                            <span class="value-display" id="sourceVerticalSensValue">50</span>
+                        </div>
+                        <input type="range" id="sourceVerticalSens" min="1" max="100" value="50" 
+                               oninput="updateSliderValue('sourceVerticalSens')">
+                    </div>
+
+                    <div class="input-group">
+                        <label for="sourceADSGamepad">ADS感度倍率</label>
+                        <input type="number" id="sourceADSGamepad" step="0.01" min="0.1" max="2" value="0.75">
+                    </div>
+
+                    <div class="section-title">応答カーブ</div>
+
+                    <div class="input-group">
+                        <label for="sourceResponseCurve">反応曲線タイプ</label>
+                        <select id="sourceResponseCurve">
+                            <option value="linear">リニア（線形）</option>
+                            <option value="standard">スタンダード</option>
+                            <option value="dynamic">ダイナミック</option>
+                            <option value="classic">クラシック</option>
+                        </select>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceAcceleration">視点加速度</label>
+                            <span class="value-display" id="sourceAccelerationValue">20%</span>
+                        </div>
+                        <input type="range" id="sourceAcceleration" min="0" max="100" value="20" 
+                               oninput="updatePercentValue('sourceAcceleration')">
+                    </div>
+
+                    <div class="section-title">デッドゾーン</div>
+
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceDeadzone">中心デッドゾーン</label>
+                            <span class="value-display" id="sourceDeadzoneValue">5%</span>
+                        </div>
+                        <input type="range" id="sourceDeadzone" min="0" max="30" value="5" 
+                               oninput="updatePercentValue('sourceDeadzone')">
+                    </div>
+
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceOuterDeadzone">外側デッドゾーン</label>
+                            <span class="value-display" id="sourceOuterDeadzoneValue">95%</span>
+                        </div>
+                        <input type="range" id="sourceOuterDeadzone" min="70" max="100" value="95" 
+                               oninput="updatePercentValue('sourceOuterDeadzone')">
+                    </div>
+
+                    <div class="section-title">エイムアシスト</div>
+
+                    <div class="input-group">
+                        <div class="label-with-value">
+                            <label for="sourceAimAssist">エイムアシスト強度</label>
+                            <span class="value-display" id="sourceAimAssistValue">100%</span>
+                        </div>
+                        <input type="range" id="sourceAimAssist" min="0" max="100" value="100" 
+                               oninput="updatePercentValue('sourceAimAssist')">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>変換先ゲーム</h2>
+                
+                <div class="input-group">
+                    <label for="targetGame">変換先のゲーム</label>
+                    <select id="targetGame">
+                        <optgroup label="タクティカルシューター">
+                            <option value="valorant">Valorant</option>
+                            <option value="cs2">Counter-Strike 2</option>
+                            <option value="r6s">Rainbow Six Siege</option>
+                            <option value="r6e">Rainbow Six Extraction</option>
+                            <option value="tarkov">Escape from Tarkov</option>
+                        </optgroup>
+                        <optgroup label="Call of Duty">
+                            <option value="codmw2019">Modern Warfare (2019)</option>
+                            <option value="codbocw">Black Ops Cold War</option>
+                            <option value="codmw2">Modern Warfare II</option>
+                            <option value="codmw3">Modern Warfare III</option>
+                            <option value="codbo6">Black Ops 6</option>
+                            <option value="codbo7">Black Ops 7</option>
+                        </optgroup>
+                        <optgroup label="Battlefield">
+                            <option value="bf1">Battlefield 1</option>
+                            <option value="bfv">Battlefield V</option>
+                            <option value="bf2042">Battlefield 2042</option>
+                            <option value="bf6">Battlefield 6</option>
+                        </optgroup>
+                        <optgroup label="バトルロイヤル/その他">
+                            <option value="apex">Apex Legends</option>
+                            <option value="pubg">PUBG: Battlegrounds</option>
+                            <option value="overwatch2">Overwatch 2</option>
+                            <option value="thefinals">The Finals</option>
+                            <option value="marvelrivals">Marvel Rivals</option>
+                            <option value="deltaforce">Delta Force</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <div id="mouse-target-settings">
+                    <div class="grid-2">
+                        <div class="input-group">
+                            <label for="targetDPI">目標DPI</label>
+                            <input type="number" id="targetDPI" placeholder="800" value="800">
+                        </div>
+                        <div class="input-group">
+                            <label for="targetFOV">目標FOV (度)</label>
+                            <input type="number" id="targetFOV" placeholder="103" value="103">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="gamepad-target-settings" class="hidden">
+                    <div class="input-group">
+                        <label for="targetFOVGamepad">目標FOV (度)</label>
+                        <input type="number" id="targetFOVGamepad" placeholder="90" value="90">
+                    </div>
+                </div>
+
+                <!-- 感度スタイル調整セクション -->
+                <div class="sensitivity-style-section">
+                    <div class="style-header">
+                        <label class="toggle-label">
+                            <input type="checkbox" id="enableStyleAdjust" onchange="toggleStyleAdjust()">
+                            <span>🎯 感度スタイル調整を有効化</span>
+                        </label>
+                    </div>
+                    
+                    <div id="styleAdjustContent" class="hidden style-content">
+                        <div class="input-group">
+                            <label>おすすめテンプレート</label>
+                            <div class="template-options">
+                                <label class="template-option">
+                                    <input type="radio" name="styleTemplate" value="-30" onchange="applyTemplate(-30)">
+                                    <span>超精密 (CS2推奨) -30%</span>
+                                </label>
+                                <label class="template-option">
+                                    <input type="radio" name="styleTemplate" value="-20" onchange="applyTemplate(-20)">
+                                    <span>精密エイム (Valorant/R6S/Tarkov) -20%</span>
+                                </label>
+                                <label class="template-option">
+                                    <input type="radio" name="styleTemplate" value="0" onchange="applyTemplate(0)" checked>
+                                    <span>バランス (Apex/BF/PUBG) ±0%</span>
+                                </label>
+                                <label class="template-option">
+                                    <input type="radio" name="styleTemplate" value="15" onchange="applyTemplate(15)">
+                                    <span>高速戦闘 (CoD推奨) +15%</span>
+                                </label>
+                                <label class="template-option">
+                                    <input type="radio" name="styleTemplate" value="custom" onchange="applyTemplate('custom')">
+                                    <span>カスタム</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="input-group">
+                            <div class="label-with-value">
+                                <label for="styleAdjustSlider">微調整スライダー</label>
+                                <span class="value-display" id="styleAdjustValue">0%</span>
+                            </div>
+                            <input type="range" id="styleAdjustSlider" min="-30" max="30" value="0" step="1"
+                                   oninput="updateStyleAdjustValue()">
+                            <small>マイナス = 精密エイム向け / プラス = 高速戦闘向け</small>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="convert-btn" onclick="convertSettings()">🔄 設定を変換</button>
+                
+                <div class="info-box">
+                    <strong>💡 ヒント:</strong><br>
+                    • cm/360を基準に完全一致を実現<br>
+                    • ゲーム固有の設定を正確に反映<br>
+                    • プロプレイヤーの設定値に基づく
+                </div>
+            </div>
+        </div>
+
+        <div class="results hidden" id="results">
+            <h2>📊 変換結果</h2>
+            <div id="resultContent"></div>
+        </div>
+    </div>
+
+    <script src="script/main.js"></script>
+</body>
+</html>
